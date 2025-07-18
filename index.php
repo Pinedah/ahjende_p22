@@ -308,7 +308,7 @@
 </head>
 <body>
     <div class="container-fluid mt-4">
-        <h1 class="text-center mb-4">Práctica 19 - Sistema de Citas</h1>
+        <h1 class="text-center mb-4">Práctica 22 - Sistema de Citas</h1>
         
         <div class="card">
             <div class="card-header">
@@ -433,11 +433,31 @@
                     <div class="col-md-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6 class="mb-0"><i class="fas fa-chart-bar"></i> Conteos por Estatus de Cita</h6>
+                                <h6 class="mb-0"><i class="fas fa-chart-bar"></i> Conteos por Estatus de Cita:</h6>
                             </div>
                             <div class="card-body" style="padding: 10px;">
                                 <div class="row" id="estatus-badges">
                                     <!-- Los badges se generarán dinámicamente -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conteos de Efectividad de Citas - Práctica 23 -->
+                <div class="row mb-3" id="conteos-efectividad" style="display: block;">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-chart-pie"></i> Conteos por Efectividad de Cita</h6>
+                            </div>
+                            <div class="card-body" style="padding: 10px;">
+                                <div class="row" id="efectividad-badges">
+                                    <div class="col-md-2">
+                                        <span class="badge badge-success" style="width: 100%; min-height: 50px; display: flex; align-items: center; justify-content: center;">
+                                            PRUEBA P23<br>5 citas
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -717,8 +737,8 @@
         // =====================================
         
         $(document).ready(function() {
-            // Cargar colores desde cache al iniciar
-            cargarColoresDesdeCache();
+            // NO cargar colores desde cache al iniciar, ahora se cargan desde BD
+            // cargarColoresDesdeCache();
             
             // Configurar fechas por defecto (última semana)
             var fechaHoy = new Date();
@@ -757,13 +777,7 @@
                 // Aplicar filtros desde URL después de cargar todo
                 aplicarFiltrosDesdeURL();
                 
-                // Aplicar colores del cache inmediatamente después de cargar la tabla
-                setTimeout(function() {
-                    if (Object.keys(coloresCeldas).length > 0) {
-                        console.log('🎨 Aplicando colores del cache al inicializar...');
-                        hot.render();
-                    }
-                }, 500);
+                // NO aplicar colores del cache, ahora se cargan desde BD automáticamente
             }).catch(function(error) {
                 console.error('Error en inicialización:', error);
                 alert('Error al inicializar la aplicación: ' + error);
@@ -2315,7 +2329,7 @@
             // Aplicar colores de estatus después de cargar los datos
             setTimeout(function() {
                 aplicarColoresEstatus();
-                cargarColoresCeldas();
+                cargarColoresCeldas(); // Cargar colores desde la base de datos
                 // Mostrar conteos después de aplicar colores
                 setTimeout(mostrarConteosEstatus, 200);
             }, 300);
@@ -3145,16 +3159,12 @@
                                             var claveCelda = row + ',' + col;
                                             delete coloresCeldas[claveCelda];
                                             
-                                            // Actualizar cache
-                                            guardarColoresEnCache();
-                                            
                                             // Forzar re-renderizado de la celda
                                             hot.render();
                                             
                                             // Enviar por WebSocket
                                             enviarMensajeWebSocket('color_eliminado', {
                                                 id_cit: idCit,
-                                                fila: row,
                                                 columna: col,
                                                 id_ejecutivo: miIdEjecutivo
                                             });
@@ -3247,14 +3257,14 @@
         function aplicarColorCelda(fila, columna, colorFondo, colorTexto) {
             var claveCelda = fila + ',' + columna;
             
-            // Almacenar el color en memoria
+            // Almacenar el color en memoria para el renderizado actual
             coloresCeldas[claveCelda] = {
                 fondo: colorFondo,
                 texto: colorTexto
             };
             
-            // Guardar en cache
-            guardarColoresEnCache();
+            // NO guardar en localStorage ya que ahora depende de la base de datos
+            // guardarColoresEnCache();
             
             console.log('🎨 Color aplicado en memoria:', claveCelda, colorFondo, colorTexto);
             
@@ -3267,8 +3277,8 @@
         function cargarColoresCeldas() {
             console.log('🎨 Cargando colores de celdas...');
             
-            // NO limpiar colores existentes - mantener cache
-            // coloresCeldas = {};
+            // Limpiar colores de celdas previos para recargar correctamente
+            coloresCeldas = {};
             
             // Cargar colores para todas las citas visibles
             var data = hot.getData();
@@ -3292,7 +3302,6 @@
             
             if (citasConColores.length === 0) {
                 console.log('ℹ️ No hay citas para cargar colores');
-                // Aún así, forzar renderizado para aplicar colores del cache
                 hot.render();
                 return;
             }
@@ -3313,13 +3322,17 @@
                     success: function(response) {
                         if (response.success) {
                             response.data.forEach(function(color) {
-                                aplicarColorCelda(
-                                    parseInt(color.fila_color), 
-                                    parseInt(color.columna_color), 
-                                    color.color_fondo, 
-                                    color.color_texto
-                                );
-                                console.log('✅ Color aplicado:', color.fila_color, color.columna_color, color.color_fondo);
+                                // Encontrar la fila actual de esta cita en la tabla
+                                var filaActual = encontrarFilaPorCita(idCit);
+                                if (filaActual !== -1) {
+                                    aplicarColorCelda(
+                                        filaActual, 
+                                        parseInt(color.columna_color), 
+                                        color.color_fondo, 
+                                        color.color_texto
+                                    );
+                                    console.log('✅ Color aplicado:', idCit, 'fila actual:', filaActual, 'columna:', color.columna_color, color.color_fondo);
+                                }
                             });
                         }
                         
@@ -3341,48 +3354,66 @@
             });
         }
         
+        // Función auxiliar para encontrar la fila actual de una cita específica
+        function encontrarFilaPorCita(idCit) {
+            var data = hot.getData();
+            var idCitIndex = obtenerIndiceColumna('id_cit');
+            
+            for (var i = 0; i < data.length; i++) {
+                if (data[i][idCitIndex] == idCit) {
+                    return i;
+                }
+            }
+            return -1; // No encontrado
+        }
+        
         function procesarColorWebSocket(mensaje) {
-            if (!mensaje.id_cit || !mensaje.fila || !mensaje.columna) {
+            if (!mensaje.id_cit || !mensaje.columna) {
                 return;
             }
             
             log('🎨 Procesando color WebSocket: ' + JSON.stringify(mensaje));
             
             if (mensaje.tipo === 'color_cambiado') {
-                // Aplicar el nuevo color
-                aplicarColorCelda(mensaje.fila, mensaje.columna, mensaje.color_fondo, mensaje.color_texto);
-                
-                // Aplicar feedback visual
-                var celda = hot.getCell(mensaje.fila, mensaje.columna);
-                if (celda) {
-                    celda.classList.add('color-websocket-changed');
-                    setTimeout(function() {
-                        celda.classList.remove('color-websocket-changed');
-                    }, 1000);
+                // Encontrar la fila actual de esta cita
+                var filaActual = encontrarFilaPorCita(mensaje.id_cit);
+                if (filaActual !== -1) {
+                    // Aplicar el nuevo color en la posición actual
+                    aplicarColorCelda(filaActual, mensaje.columna, mensaje.color_fondo, mensaje.color_texto);
+                    
+                    // Aplicar feedback visual
+                    var celda = hot.getCell(filaActual, mensaje.columna);
+                    if (celda) {
+                        celda.classList.add('color-websocket-changed');
+                        setTimeout(function() {
+                            celda.classList.remove('color-websocket-changed');
+                        }, 1000);
+                    }
+                    
+                    mostrarBadgeWebSocket('info', 'Color cambiado por otro usuario');
                 }
-                
-                mostrarBadgeWebSocket('info', 'Color cambiado por otro usuario');
             } else if (mensaje.tipo === 'color_eliminado') {
-                // Quitar el color del almacenamiento
-                var claveCelda = mensaje.fila + ',' + mensaje.columna;
-                delete coloresCeldas[claveCelda];
-                
-                // Actualizar cache
-                guardarColoresEnCache();
-                
-                // Forzar re-renderizado de la celda
-                hot.render();
-                
-                // Aplicar feedback visual
-                var celda = hot.getCell(mensaje.fila, mensaje.columna);
-                if (celda) {
-                    celda.classList.add('color-websocket-changed');
-                    setTimeout(function() {
-                        celda.classList.remove('color-websocket-changed');
-                    }, 1000);
+                // Encontrar la fila actual de esta cita
+                var filaActual = encontrarFilaPorCita(mensaje.id_cit);
+                if (filaActual !== -1) {
+                    // Quitar el color del almacenamiento
+                    var claveCelda = filaActual + ',' + mensaje.columna;
+                    delete coloresCeldas[claveCelda];
+                    
+                    // Forzar re-renderizado de la celda
+                    hot.render();
+                    
+                    // Aplicar feedback visual
+                    var celda = hot.getCell(filaActual, mensaje.columna);
+                    if (celda) {
+                        celda.classList.add('color-websocket-changed');
+                        setTimeout(function() {
+                            celda.classList.remove('color-websocket-changed');
+                        }, 1000);
+                    }
+                    
+                    mostrarBadgeWebSocket('info', 'Color eliminado por otro usuario');
                 }
-                
-                mostrarBadgeWebSocket('info', 'Color eliminado por otro usuario');
             }
         }
         
