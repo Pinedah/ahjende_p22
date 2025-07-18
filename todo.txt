@@ -1,0 +1,75 @@
+📌 *p22 - Estatus de cita y Conteos*  
+En la tabla cita, se debe añadir la columna:
+
+*est_cit VARCHAR(50)*, que refiere a estatus de la cita, y por defecto debe ser 'CITA AGENDADA'.
+
+*Funcionalidad Dropdown:*
+Dichos valores deben aparecer en la Handsontable en celdas de tipo Dropdown. Según la selección del valor se debe pintar la celda de estatus del color asociado a cada elemento 🎨.
+
+*Catálogo de estatus:*
+json
+[
+  { "label": "CITA AGENDADA", "color": "#FF9800" },
+  { "label": "INVASIÓN DE CICLO", "color": "#FFFF00" },
+  { "label": "CITA REAGENDADA", "color": "#9C27B0" },
+  { "label": "CITA NO ATENDIDA", "color": "#FF6666" },
+  { "label": "PAGO ESPERADO", "color": "#FF00FF" },
+  { "label": "PERDIDO POR PRECIO", "color": "#AABBCC" },
+  { "label": "PERDIDO POR HORARIO", "color": "#336699" },
+  { "label": "REGISTRO", "color": "#00FFFF" },
+  { "label": "NO LE INTERESA", "color": "#CC0000" },
+  { "label": "ASESORÍA REALIZADA", "color": "#00FF00" },
+  { "label": "CITA CONFIRMADA", "color": "#FFFF00" }
+]
+
+
+*Ejemplo:* Por defecto saldrá 'CITA AGENDADA', esa celda debe pintarse color '#FF9800'.
+
+*Conteos superiores:*
+Encima de la tabla se deben desplegar los conteos de acuerdo a los datos que despliegue la tabla. Cada total dirá qué estatus es, con el color asociado del catálogo y el total que tiene 📊.
+
+*WebSocket:* Los cambios realizados también deben operar con websockets 📡.
+
+---
+
+📌 *p23 - Efectividad de cita*  
+En la tabla cita, se debe añadir la columna:
+
+*efe_cit VARCHAR(50)*, que refiere a la efectividad de la cita (si el cliente se conectó o asistió correctamente a su cita), y por defecto debe ser NULL, y el dropdown permitirá únicamente dos valores: "CITA EFECTIVA", "CITA NO EFECTIVA".
+
+*Colores de efectividad:*
+Al igual que la práctica previa, ambas tipificaciones deben llevar un color apenas sean seteadas:
+
+*'CITA EFECTIVA'*
+- Fondo: '#FFC0CB' (rosa)
+- Texto: '#FF0000' (rojo)
+
+*'CITA NO EFECTIVA'*  
+- Fondo: '#FF6666' (rojo claro)
+- Texto: '#FFFFFF' (blanco)
+
+*Conteos superiores:*
+Estos conteos también deben totalizarse arriba de la tabla en elementos pequeños que definan su estatus + total 📊.
+
+*WebSocket:* Los cambios realizados también deben operar con websockets 📡.
+
+---
+
+📌 *p24 - Embudo de citas*  
+El embudo operativo de citas es:
+
+*Flujo del embudo:*
+- *Todas las citas* ———————> *TOTAL CITAS*
+- *efe_cit = 'CITA EFECTIVA'* ———————> *CITAS EFECTIVAS* (las que se conectaron/asistieron)
+- *est_cit = 'REGISTRO'* ———————> *CITAS CON ESTATUS DE REGISTRO* (este estatus significa que fue venta)
+
+*Visualización:*
+Se necesitan desplegar dichos datos también encima de la tabla en un pequeño gráfico que totalice los datos numérica y porcentualmente 📈.
+
+*Estructura del embudo:*
+
+TOTAL CITAS: 100 (100%)
+    ↓
+CITAS EFECTIVAS: 75 (75%)
+    ↓  
+REGISTROS: 25 (25%)
