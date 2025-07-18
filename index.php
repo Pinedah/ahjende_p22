@@ -23,6 +23,9 @@
     <!-- Handsontable JS -->
     <script src="handsontable/handsontable.full.min.js"></script>
     
+    <!-- Chart.js for pie charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         .horario-column {
             background-color: #f8f9fa;
@@ -304,6 +307,118 @@
             justify-content: center;
             text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
         }
+        
+        /* Estilos para el embudo de citas - Práctica 24 */
+        .embudo-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 10px 15px;
+        }
+        
+        .embudo-datos {
+            flex: 2;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .embudo-etapa {
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+            min-width: 100px;
+            transition: all 0.3s ease;
+        }
+        
+        .embudo-etapa:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .embudo-etapa.total-citas {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+        
+        .embudo-etapa.citas-efectivas {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+        }
+        
+        .embudo-etapa.registros {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #333;
+        }
+        
+        .embudo-numero {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 1px;
+            line-height: 1;
+        }
+        
+        .embudo-porcentaje {
+            font-size: 0.8em;
+            margin-bottom: 1px;
+            line-height: 1;
+        }
+        
+        .embudo-label {
+            font-size: 0.65em;
+            opacity: 0.9;
+            line-height: 1;
+        }
+        
+        .embudo-flecha {
+            font-size: 1em;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .embudo-chart-container {
+            flex: 0 0 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .embudo-chart {
+            width: 80px;
+            height: 80px;
+        }
+        
+        @media (max-width: 768px) {
+            .embudo-container {
+                flex-direction: column;
+                gap: 10px;
+                padding: 8px;
+            }
+            
+            .embudo-datos {
+                order: 2;
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .embudo-chart-container {
+                order: 1;
+                flex: 0 0 60px;
+            }
+            
+            .embudo-chart {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .embudo-flecha {
+                transform: rotate(90deg);
+            }
+        }
     </style>
 </head>
 <body>
@@ -445,7 +560,7 @@
                 </div>
 
                 <!-- Conteos de Efectividad de Citas - Práctica 23 -->
-                <div class="row mb-3" id="conteos-efectividad" style="display: block;">
+                <div class="row mb-3" id="conteos-efectividad" style="display: none;">
                     <div class="col-md-12">
                         <div class="card">
                             <div class="card-header">
@@ -453,10 +568,59 @@
                             </div>
                             <div class="card-body" style="padding: 10px;">
                                 <div class="row" id="efectividad-badges">
-                                    <div class="col-md-2">
-                                        <span class="badge badge-success" style="width: 100%; min-height: 50px; display: flex; align-items: center; justify-content: center;">
-                                            PRUEBA P23<br>5 citas
-                                        </span>
+                                    <!-- Los badges se generarán dinámicamente -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Embudo de Citas - Práctica 24 -->
+                <div class="row mb-3" id="embudo-citas" style="display: none;">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-funnel-dollar"></i> Embudo de Citas</h6>
+                            </div>
+                            <div class="card-body" style="padding: 10px;">
+                                <div class="embudo-container">
+                                    <!-- Datos del embudo -->
+                                    <div class="embudo-datos">
+                                        <!-- Total de Citas -->
+                                        <div class="embudo-etapa total-citas">
+                                            <div class="embudo-numero" id="total-numero">0</div>
+                                            <div class="embudo-porcentaje" id="total-porcentaje">100%</div>
+                                            <div class="embudo-label">TOTAL CITAS</div>
+                                        </div>
+                                        
+                                        <!-- Flecha -->
+                                        <div class="embudo-flecha">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                        
+                                        <!-- Citas Efectivas -->
+                                        <div class="embudo-etapa citas-efectivas">
+                                            <div class="embudo-numero" id="efectivas-numero">0</div>
+                                            <div class="embudo-porcentaje" id="efectivas-porcentaje">0%</div>
+                                            <div class="embudo-label">CITAS EFECTIVAS</div>
+                                        </div>
+                                        
+                                        <!-- Flecha -->
+                                        <div class="embudo-flecha">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                        
+                                        <!-- Registros -->
+                                        <div class="embudo-etapa registros">
+                                            <div class="embudo-numero" id="registros-numero">0</div>
+                                            <div class="embudo-porcentaje" id="registros-porcentaje">0%</div>
+                                            <div class="embudo-label">REGISTROS</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Gráfico unificado -->
+                                    <div class="embudo-chart-container">
+                                        <canvas class="embudo-chart" id="chart-embudo"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -915,6 +1079,15 @@
                             }, 100);
                         }
                         
+                        // Aplicar color automáticamente si es efectividad (Práctica 23)
+                        if (mensaje.campo === 'efe_cit' && mensaje.valor && mensaje.valor !== '') {
+                            setTimeout(function() {
+                                aplicarColorEfectividad(i, columnaIndex, mensaje.valor);
+                                // Actualizar conteos también via WebSocket
+                                mostrarConteosEfectividad();
+                            }, 100);
+                        }
+                        
                         // Aplicar feedback visual
                         aplicarFeedbackVisual(i, columnaIndex, mensaje.campo);
                         
@@ -1207,7 +1380,7 @@
         }
         
         // =====================================
-        // FUNCIONES PARA ESTATUS DE CITA (PRÁCTICA 22)
+        // FUNCIONES PARA ESTATUS DE CITA Y EFECTIVIDAD DE CITA (PRÁCTICA 22 y 23)
         // =====================================
         
         function obtenerColorEstatus(estatus) {
@@ -1226,6 +1399,23 @@
             };
             
             return catalogoEstatus[estatus] || null;
+        }
+        
+        function obtenerColorEfectividad(efectividad) {
+            switch(efectividad) {
+                case 'CITA EFECTIVA':
+                    return {
+                        fondo: '#FFC0CB',  // rosa
+                        texto: '#FF0000'   // rojo
+                    };
+                case 'CITA NO EFECTIVA':
+                    return {
+                        fondo: '#FF6666',  // rojo claro
+                        texto: '#FFFFFF'   // blanco
+                    };
+                default:
+                    return null;
+            }
         }
 
         // Función para calcular conteos de estatus
@@ -1306,6 +1496,9 @@
                     contenedor.append(badge);
                 }
             });
+            
+            // Actualizar embudo de citas cuando cambian los estatus
+            mostrarEmbudoCitas();
         }
         
         // Función para obtener color de contraste (texto blanco o negro)
@@ -1333,6 +1526,259 @@
             
             // Actualizar conteos
             setTimeout(mostrarConteosEstatus, 100);
+        }
+
+        // Función para calcular conteos de efectividad
+        function calcularConteosEfectividad() {
+            var conteos = {};
+            var totalCitas = 0;
+            
+            // Inicializar conteos para efectividad
+            var catalogoEfectividad = {
+                'CITA EFECTIVA': { fondo: '#FFC0CB', texto: '#FF0000' },
+                'CITA NO EFECTIVA': { fondo: '#FF6666', texto: '#FFFFFF' }
+            };
+            
+            Object.keys(catalogoEfectividad).forEach(function(efectividad) {
+                conteos[efectividad] = { cantidad: 0, color: catalogoEfectividad[efectividad].fondo };
+            });
+            
+            if (!hot) return conteos;
+            
+            var indexEfectividad = obtenerIndiceColumna('efe_cit');
+            var indexIdCit = obtenerIndiceColumna('id_cit');
+            
+            if (indexEfectividad === -1 || indexIdCit === -1) return conteos;
+            
+            // Recorrer todas las filas de la tabla
+            var datos = hot.getData();
+            datos.forEach(function(fila) {
+                var id_cit = fila[indexIdCit];
+                var efectividad = fila[indexEfectividad];
+                
+                // Solo contar filas que tienen ID de cita (citas reales)
+                if (id_cit && id_cit !== '' && efectividad && conteos[efectividad]) {
+                    conteos[efectividad].cantidad++;
+                    totalCitas++;
+                }
+            });
+            
+            return { conteos: conteos, total: totalCitas };
+        }
+        
+        // Función para mostrar conteos de efectividad
+        function mostrarConteosEfectividad() {
+            var resultado = calcularConteosEfectividad();
+            var conteos = resultado.conteos;
+            var total = resultado.total;
+            
+            var contenedor = $('#efectividad-badges');
+            contenedor.empty();
+            
+            if (total === 0) {
+                $('#conteos-efectividad').hide();
+                // Ocultar embudo también si no hay datos
+                $('#embudo-citas').hide();
+                return;
+            }
+            
+            $('#conteos-efectividad').show();
+            
+            Object.keys(conteos).forEach(function(efectividad) {
+                var datos = conteos[efectividad];
+                if (datos.cantidad > 0) {
+                    var porcentaje = ((datos.cantidad / total) * 100).toFixed(1);
+                    var badge = `
+                        <div class="col-md-3 mb-2">
+                            <div class="badge p-2 d-block text-center" style="background-color: ${datos.color}; color: ${getContrastColor(datos.color)}; font-size: 0.85em;">
+                                <div style="font-weight: bold;">${efectividad}</div>
+                                <div>${datos.cantidad} (${porcentaje}%)</div>
+                            </div>
+                        </div>
+                    `;
+                    contenedor.append(badge);
+                }
+            });
+            
+            // Mostrar embudo de citas (Práctica 24)
+            mostrarEmbudoCitas();
+        }
+        
+        // Función para aplicar color automáticamente al cambiar efectividad
+        function aplicarColorEfectividad(row, column, efectividad) {
+            if (!hot || !efectividad) return;
+            
+            // Simplemente hacer render ya que el renderer personalizado se encargará de los colores
+            hot.render();
+            
+            // Actualizar conteos
+            setTimeout(mostrarConteosEfectividad, 100);
+        }
+
+        // =====================================
+        // FUNCIONES DEL EMBUDO DE CITAS - PRÁCTICA 24
+        // =====================================
+        
+        var chartInstances = {}; // Para almacenar las instancias de los gráficos
+        var embudoTimeout = null; // Para evitar múltiples llamadas consecutivas
+        
+        // Función para calcular datos del embudo
+        function calcularDatosEmbudo() {
+            if (!hot) return { totalCitas: 0, citasEfectivas: 0, registros: 0 };
+            
+            var indexEfectividad = obtenerIndiceColumna('efe_cit');
+            var indexEstatus = obtenerIndiceColumna('est_cit');
+            var indexIdCit = obtenerIndiceColumna('id_cit');
+            
+            if (indexIdCit === -1) return { totalCitas: 0, citasEfectivas: 0, registros: 0 };
+            
+            var totalCitas = 0;
+            var citasEfectivas = 0;
+            var registros = 0;
+            
+            // Recorrer todas las filas de la tabla
+            var datos = hot.getData();
+            datos.forEach(function(fila) {
+                var id_cit = fila[indexIdCit];
+                
+                // Solo contar filas que tienen ID de cita (citas reales)
+                if (id_cit && id_cit !== '') {
+                    totalCitas++;
+                    
+                    // Contar citas efectivas
+                    if (indexEfectividad !== -1) {
+                        var efectividad = fila[indexEfectividad];
+                        if (efectividad === 'CITA EFECTIVA') {
+                            citasEfectivas++;
+                        }
+                    }
+                    
+                    // Contar registros
+                    if (indexEstatus !== -1) {
+                        var estatus = fila[indexEstatus];
+                        if (estatus === 'REGISTRO') {
+                            registros++;
+                        }
+                    }
+                }
+            });
+            
+            return { totalCitas, citasEfectivas, registros };
+        }
+        
+        // Función para crear gráfico unificado del embudo
+        function crearGraficoEmbudoUnificado(totalCitas, citasEfectivas, registros) {
+            var ctx = document.getElementById('chart-embudo');
+            if (!ctx) return;
+            
+            // Destruir gráfico existente si existe
+            if (chartInstances['chart-embudo']) {
+                chartInstances['chart-embudo'].destroy();
+            }
+            
+            // Forzar el tamaño del canvas para evitar crecimiento automático
+            ctx.style.width = '80px';
+            ctx.style.height = '80px';
+            ctx.width = 80;
+            ctx.height = 80;
+            
+            // Calcular datos para el gráfico
+            var noEfectivas = totalCitas - citasEfectivas;
+            var efectivasNoRegistro = citasEfectivas - registros;
+            
+            chartInstances['chart-embudo'] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Registros', 'Efectivas sin Registro', 'No Efectivas'],
+                    datasets: [{
+                        data: [registros, efectivasNoRegistro, noEfectivas],
+                        backgroundColor: ['#ffc107', '#28a745', '#e9ecef'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 8
+                                },
+                                padding: 4,
+                                usePointStyle: true,
+                                boxWidth: 8
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            titleFont: {
+                                size: 10
+                            },
+                            bodyFont: {
+                                size: 9
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    var label = context.label || '';
+                                    var value = context.parsed;
+                                    var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    var percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return label + ': ' + value + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '50%'
+                }
+            });
+        }
+        
+        // Función para mostrar el embudo de citas
+        function mostrarEmbudoCitas() {
+            // Evitar múltiples llamadas consecutivas con debounce
+            if (embudoTimeout) {
+                clearTimeout(embudoTimeout);
+            }
+            
+            embudoTimeout = setTimeout(function() {
+                var datos = calcularDatosEmbudo();
+                var totalCitas = datos.totalCitas;
+                var citasEfectivas = datos.citasEfectivas;
+                var registros = datos.registros;
+                
+                if (totalCitas === 0) {
+                    $('#embudo-citas').hide();
+                    return;
+                }
+                
+                $('#embudo-citas').show();
+                
+                // Calcular porcentajes
+                var porcentajeEfectivas = totalCitas > 0 ? ((citasEfectivas / totalCitas) * 100).toFixed(1) : 0;
+                var porcentajeRegistros = totalCitas > 0 ? ((registros / totalCitas) * 100).toFixed(1) : 0;
+                
+                // Actualizar números y porcentajes
+                $('#total-numero').text(totalCitas);
+                $('#total-porcentaje').text('100%');
+                
+                $('#efectivas-numero').text(citasEfectivas);
+                $('#efectivas-porcentaje').text(porcentajeEfectivas + '%');
+                
+                $('#registros-numero').text(registros);
+                $('#registros-porcentaje').text(porcentajeRegistros + '%');
+                
+                // Crear gráfico unificado con un delay para asegurar que el DOM esté listo
+                setTimeout(function() {
+                    crearGraficoEmbudoUnificado(totalCitas, citasEfectivas, registros);
+                }, 100);
+                
+                embudoTimeout = null;
+            }, 50);
         }
 
         // =====================================
@@ -1509,13 +1955,19 @@
                             if (newValue !== oldValue && prop > 0) {
                                 manejarCambioEnFila(row, prop, newValue, oldValue);
                                 
-                                // Aplicar colores automáticamente para cambios de estatus
+                                // Aplicar colores automáticamente para cambios de estatus o efectividad
                                 var campo = obtenerCampo(prop);
                                 if (campo === 'est_cit' && newValue && newValue !== '') {
                                     setTimeout(function() {
                                         // Forzar re-render de la celda específica
                                         hot.render();
                                         mostrarConteosEstatus();
+                                    }, 100);
+                                } else if (campo === 'efe_cit' && newValue && newValue !== '') {
+                                    setTimeout(function() {
+                                        // Forzar re-render de la celda específica
+                                        hot.render();
+                                        mostrarConteosEfectividad();
                                     }, 100);
                                 }
                             }
@@ -1610,14 +2062,27 @@
                         }
                     }
                     
+                    // Renderer para efectividad de cita (Práctica 23)
+                    if (campo === 'efe_cit' && value) {
+                        var colorEfectividad = obtenerColorEfectividad(value);
+                        if (colorEfectividad) {
+                            console.log('🎨 Aplicando color efectividad:', value, colorEfectividad);
+                            TD.style.backgroundColor = colorEfectividad.fondo;
+                            TD.style.color = colorEfectividad.texto;
+                            TD.style.fontWeight = 'bold';
+                            TD.style.textAlign = 'center';
+                        }
+                    }
+                    
                     // Aplicar colores personalizados (tienen prioridad sobre colores automáticos)
                     var claveCelda = row + ',' + col;
                     if (coloresCeldas[claveCelda]) {
+                        console.log('🎨 Aplicando color personalizado en:', claveCelda, coloresCeldas[claveCelda]);
                         TD.style.backgroundColor = coloresCeldas[claveCelda].fondo;
                         TD.style.color = coloresCeldas[claveCelda].texto;
                         TD.classList.add('celda-coloreada');
-                    } else if (campo !== 'est_cit') {
-                        // Solo limpiar estilos si no es columna de estatus
+                    } else if (campo !== 'est_cit' && campo !== 'efe_cit') {
+                        // Solo limpiar estilos si no es columna de estatus o efectividad
                         TD.style.backgroundColor = '';
                         TD.style.color = '';
                         TD.classList.remove('celda-coloreada');
@@ -1769,9 +2234,78 @@
             if (campo === 'est_cit' && newValue && newValue !== '') {
                 setTimeout(function() {
                     aplicarColorEstatus(row, column, newValue);
-                    // Actualizar conteos inmediatamente
-                    mostrarConteosEstatus();
+                    // Los conteos se actualizan dentro de aplicarColorEstatus()
                 }, 50);
+                
+                // Guardar inmediatamente en la base de datos si hay ID de cita
+                if (id_cit && id_cit !== '') {
+                    console.log('🔄 Guardando estatus inmediatamente:', campo, newValue);
+                    $.ajax({
+                        url: 'server/controlador_citas.php',
+                        type: 'POST',
+                        data: {
+                            action: 'actualizar_cita',
+                            id_cit: id_cit,
+                            campo: campo,
+                            valor: newValue
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                console.log('✅ Estatus guardado correctamente');
+                            } else {
+                                console.error('❌ Error al guardar estatus:', response.message);
+                                alert('Error al guardar estatus: ' + response.message);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('❌ Error de conexión al guardar estatus:', error);
+                            alert('Error de conexión al guardar estatus');
+                        }
+                    });
+                }
+            }
+            
+            // Aplicar color automáticamente si el campo es efectividad (Práctica 23)
+            if (campo === 'efe_cit' && newValue && newValue !== '') {
+                console.log('🎯 Procesando cambio de efectividad:', campo, '=', newValue, 'en fila', row);
+                setTimeout(function() {
+                    aplicarColorEfectividad(row, column, newValue);
+                    // Los conteos se actualizan dentro de aplicarColorEfectividad()
+                }, 50);
+                
+                // Guardar inmediatamente en la base de datos si hay ID de cita
+                if (id_cit && id_cit !== '') {
+                    console.log('🔄 Guardando efectividad inmediatamente:', campo, newValue, 'para cita ID:', id_cit);
+                    $.ajax({
+                        url: 'server/controlador_citas.php',
+                        type: 'POST',
+                        data: {
+                            action: 'actualizar_cita',
+                            id_cit: id_cit,
+                            campo: campo,
+                            valor: newValue
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            console.log('📊 Respuesta del servidor para efectividad:', response);
+                            if (response.success) {
+                                console.log('✅ Efectividad guardada correctamente en BD');
+                                mostrarBadgeWebSocket('success', 'Efectividad actualizada: ' + newValue);
+                            } else {
+                                console.error('❌ Error al guardar efectividad:', response.message);
+                                alert('Error al guardar efectividad: ' + response.message);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('❌ Error de conexión al guardar efectividad:', error);
+                            console.error('Detalles del error:', xhr.responseText);
+                            alert('Error de conexión al guardar efectividad: ' + error);
+                        }
+                    });
+                } else {
+                    console.warn('⚠️ No se puede guardar efectividad: no hay ID de cita válido');
+                }
             }
             
             // Enviar mensaje WebSocket si existe una cita (ID no vacío)
@@ -2331,7 +2865,10 @@
                 aplicarColoresEstatus();
                 cargarColoresCeldas(); // Cargar colores desde la base de datos
                 // Mostrar conteos después de aplicar colores
-                setTimeout(mostrarConteosEstatus, 200);
+                setTimeout(function() {
+                    mostrarConteosEstatus();
+                    mostrarConteosEfectividad();
+                }, 200);
             }, 300);
         }
         
@@ -3275,7 +3812,7 @@
         }
         
         function cargarColoresCeldas() {
-            console.log('🎨 Cargando colores de celdas...');
+            console.log('🎨 Cargando colores de celdas desde base de datos...');
             
             // Limpiar colores de celdas previos para recargar correctamente
             coloresCeldas = {};
@@ -3338,8 +3875,9 @@
                         
                         coloresCargados++;
                         if (coloresCargados === totalCitas) {
-                            console.log('🎉 Todos los colores cargados, forzando re-renderizado');
+                            console.log('🎉 Todos los colores cargados exitosamente, forzando re-renderizado');
                             hot.render();
+                            mostrarBadgeWebSocket('success', 'Colores de celdas restaurados desde base de datos');
                         }
                     },
                     error: function(xhr, status, error) {

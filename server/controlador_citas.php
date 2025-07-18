@@ -385,6 +385,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 								'CITA CONFIRMADA'
 							];
 							break;
+						case 'efe_cit':
+							$config['header'] = 'EFECTIVIDAD';
+							$config['type'] = 'dropdown';
+							$config['width'] = 160;
+							$config['source'] = [
+								'CITA EFECTIVA',
+								'CITA NO EFECTIVA'
+							];
+							break;
 						default:
 							// Detectar tipo automáticamente
 							if(strpos($tipo, 'date') !== false) {
