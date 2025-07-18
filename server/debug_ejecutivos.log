@@ -292,3 +292,38 @@
 
 [2025-07-18 21:43:42] Query planteles: SELECT id_pla, nom_pla, fec_pla FROM plantel ORDER BY nom_pla ASC
 [2025-07-18 21:43:42] Planteles encontrados: 3
+[2025-07-18 21:51:53] REQUEST recibido: Array
+(
+    [action] => obtener_planteles
+)
+
+[2025-07-18 21:51:53] Query planteles: SELECT id_pla, nom_pla, fec_pla FROM plantel ORDER BY nom_pla ASC
+[2025-07-18 21:51:53] Planteles encontrados: 3
+[2025-07-18 21:56:25] REQUEST recibido: Array
+(
+    [action] => obtener_planteles
+)
+
+[2025-07-18 21:56:25] Query planteles: SELECT id_pla, nom_pla, fec_pla FROM plantel ORDER BY nom_pla ASC
+[2025-07-18 21:56:25] Planteles encontrados: 3
+[2025-07-18 21:57:46] REQUEST recibido: Array
+(
+    [action] => obtener_planteles
+)
+
+[2025-07-18 21:57:46] Query planteles: SELECT id_pla, nom_pla, fec_pla FROM plantel ORDER BY nom_pla ASC
+[2025-07-18 21:57:46] Planteles encontrados: 3
+[2025-07-18 22:00:12] REQUEST recibido: Array
+(
+    [action] => obtener_planteles
+)
+
+[2025-07-18 22:00:12] Query planteles: SELECT id_pla, nom_pla, fec_pla FROM plantel ORDER BY nom_pla ASC
+[2025-07-18 22:00:12] Planteles encontrados: 3
+[2025-07-18 22:00:31] REQUEST recibido: Array
+(
+    [action] => obtener_planteles
+)
+
+[2025-07-18 22:00:31] Query planteles: SELECT id_pla, nom_pla, fec_pla FROM plantel ORDER BY nom_pla ASC
+[2025-07-18 22:00:31] Planteles encontrados: 3
