@@ -285,3 +285,10 @@
 
 [2025-07-18 21:39:05] Query planteles: SELECT id_pla, nom_pla, fec_pla FROM plantel ORDER BY nom_pla ASC
 [2025-07-18 21:39:05] Planteles encontrados: 3
+[2025-07-18 21:43:42] REQUEST recibido: Array
+(
+    [action] => obtener_planteles
+)
+
+[2025-07-18 21:43:42] Query planteles: SELECT id_pla, nom_pla, fec_pla FROM plantel ORDER BY nom_pla ASC
+[2025-07-18 21:43:42] Planteles encontrados: 3

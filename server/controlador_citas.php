@@ -581,6 +581,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			}
 		break;
 
+		case 'obtener_estadisticas_embudo':
+			// Consulta para obtener estadísticas globales del embudo
+			$totalCitas = 0;
+			$citasEfectivas = 0;
+			$registros = 0;
+			
+			// Obtener total de citas
+			$queryTotal = "SELECT COUNT(*) as total FROM cita WHERE id_cit IS NOT NULL AND id_cit != ''";
+			$resultTotal = mysqli_query($connection, $queryTotal);
+			if ($resultTotal && $rowTotal = mysqli_fetch_assoc($resultTotal)) {
+				$totalCitas = intval($rowTotal['total']);
+			}
+			
+			// Obtener citas efectivas
+			$queryEfectivas = "SELECT COUNT(*) as efectivas FROM cita 
+							  WHERE efe_cit = 'CITA EFECTIVA' AND id_cit IS NOT NULL AND id_cit != ''";
+			$resultEfectivas = mysqli_query($connection, $queryEfectivas);
+			if ($resultEfectivas && $rowEfectivas = mysqli_fetch_assoc($resultEfectivas)) {
+				$citasEfectivas = intval($rowEfectivas['efectivas']);
+			}
+			
+			// Obtener registros
+			$queryRegistros = "SELECT COUNT(*) as registros FROM cita 
+							  WHERE est_cit = 'REGISTRO' AND id_cit IS NOT NULL AND id_cit != ''";
+			$resultRegistros = mysqli_query($connection, $queryRegistros);
+			if ($resultRegistros && $rowRegistros = mysqli_fetch_assoc($resultRegistros)) {
+				$registros = intval($rowRegistros['registros']);
+			}
+			
+			// Log para debugging
+			file_put_contents('debug.log', '[' . date('Y-m-d H:i:s') . '] EMBUDO ESTADÍSTICAS - Total: ' . $totalCitas . ', Efectivas: ' . $citasEfectivas . ', Registros: ' . $registros . "\n", FILE_APPEND);
+			
+			echo respuestaExito([
+				'total_citas' => $totalCitas,
+				'citas_efectivas' => $citasEfectivas,
+				'registros' => $registros
+			], 'Estadísticas del embudo obtenidas correctamente');
+		break;
+
 		default:
 			echo respuestaError('Acción no válida');
 		break;

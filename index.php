@@ -1622,48 +1622,34 @@
         var chartInstances = {}; // Para almacenar las instancias de los gráficos
         var embudoTimeout = null; // Para evitar múltiples llamadas consecutivas
         
-        // Función para calcular datos del embudo
+        // Función para calcular datos del embudo (consulta global a la base de datos)
         function calcularDatosEmbudo() {
-            if (!hot) return { totalCitas: 0, citasEfectivas: 0, registros: 0 };
-            
-            var indexEfectividad = obtenerIndiceColumna('efe_cit');
-            var indexEstatus = obtenerIndiceColumna('est_cit');
-            var indexIdCit = obtenerIndiceColumna('id_cit');
-            
-            if (indexIdCit === -1) return { totalCitas: 0, citasEfectivas: 0, registros: 0 };
-            
-            var totalCitas = 0;
-            var citasEfectivas = 0;
-            var registros = 0;
-            
-            // Recorrer todas las filas de la tabla
-            var datos = hot.getData();
-            datos.forEach(function(fila) {
-                var id_cit = fila[indexIdCit];
-                
-                // Solo contar filas que tienen ID de cita (citas reales)
-                if (id_cit && id_cit !== '') {
-                    totalCitas++;
-                    
-                    // Contar citas efectivas
-                    if (indexEfectividad !== -1) {
-                        var efectividad = fila[indexEfectividad];
-                        if (efectividad === 'CITA EFECTIVA') {
-                            citasEfectivas++;
+            return new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: 'server/controlador_citas.php',
+                    type: 'POST',
+                    data: {
+                        action: 'obtener_estadisticas_embudo'
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            resolve({
+                                totalCitas: parseInt(response.data.total_citas) || 0,
+                                citasEfectivas: parseInt(response.data.citas_efectivas) || 0,
+                                registros: parseInt(response.data.registros) || 0
+                            });
+                        } else {
+                            console.error('Error al obtener estadísticas del embudo:', response.message);
+                            resolve({ totalCitas: 0, citasEfectivas: 0, registros: 0 });
                         }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error AJAX al obtener estadísticas del embudo:', error);
+                        resolve({ totalCitas: 0, citasEfectivas: 0, registros: 0 });
                     }
-                    
-                    // Contar registros
-                    if (indexEstatus !== -1) {
-                        var estatus = fila[indexEstatus];
-                        if (estatus === 'REGISTRO') {
-                            registros++;
-                        }
-                    }
-                }
+                });
             });
-            
-            return { totalCitas, citasEfectivas, registros };
         }
         
         // Función para crear gráfico unificado del embudo
@@ -1746,36 +1732,40 @@
             }
             
             embudoTimeout = setTimeout(function() {
-                var datos = calcularDatosEmbudo();
-                var totalCitas = datos.totalCitas;
-                var citasEfectivas = datos.citasEfectivas;
-                var registros = datos.registros;
-                
-                if (totalCitas === 0) {
+                calcularDatosEmbudo().then(function(datos) {
+                    var totalCitas = datos.totalCitas;
+                    var citasEfectivas = datos.citasEfectivas;
+                    var registros = datos.registros;
+                    
+                    if (totalCitas === 0) {
+                        $('#embudo-citas').hide();
+                        return;
+                    }
+                    
+                    $('#embudo-citas').show();
+                    
+                    // Calcular porcentajes
+                    var porcentajeEfectivas = totalCitas > 0 ? ((citasEfectivas / totalCitas) * 100).toFixed(1) : 0;
+                    var porcentajeRegistros = totalCitas > 0 ? ((registros / totalCitas) * 100).toFixed(1) : 0;
+                    
+                    // Actualizar números y porcentajes
+                    $('#total-numero').text(totalCitas);
+                    $('#total-porcentaje').text('100%');
+                    
+                    $('#efectivas-numero').text(citasEfectivas);
+                    $('#efectivas-porcentaje').text(porcentajeEfectivas + '%');
+                    
+                    $('#registros-numero').text(registros);
+                    $('#registros-porcentaje').text(porcentajeRegistros + '%');
+                    
+                    // Crear gráfico unificado con un delay para asegurar que el DOM esté listo
+                    setTimeout(function() {
+                        crearGraficoEmbudoUnificado(totalCitas, citasEfectivas, registros);
+                    }, 100);
+                }).catch(function(error) {
+                    console.error('Error al mostrar embudo de citas:', error);
                     $('#embudo-citas').hide();
-                    return;
-                }
-                
-                $('#embudo-citas').show();
-                
-                // Calcular porcentajes
-                var porcentajeEfectivas = totalCitas > 0 ? ((citasEfectivas / totalCitas) * 100).toFixed(1) : 0;
-                var porcentajeRegistros = totalCitas > 0 ? ((registros / totalCitas) * 100).toFixed(1) : 0;
-                
-                // Actualizar números y porcentajes
-                $('#total-numero').text(totalCitas);
-                $('#total-porcentaje').text('100%');
-                
-                $('#efectivas-numero').text(citasEfectivas);
-                $('#efectivas-porcentaje').text(porcentajeEfectivas + '%');
-                
-                $('#registros-numero').text(registros);
-                $('#registros-porcentaje').text(porcentajeRegistros + '%');
-                
-                // Crear gráfico unificado con un delay para asegurar que el DOM esté listo
-                setTimeout(function() {
-                    crearGraficoEmbudoUnificado(totalCitas, citasEfectivas, registros);
-                }, 100);
+                });
                 
                 embudoTimeout = null;
             }, 50);
